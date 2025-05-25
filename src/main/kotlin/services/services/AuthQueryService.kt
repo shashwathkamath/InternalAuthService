@@ -12,15 +12,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.example.models.AccessStatus
+import org.example.models.AuthCallbackPayload
 import org.example.models.AuthRequest
 import org.example.models.AuthResponse
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.kamath.db.tables.AccessLogs
 import org.kamath.utils.Constants
 import org.kamath.utils.logger
-import java.time.LocalDateTime
 
 object AuthQueryService: IAuthQueryService {
 
@@ -48,9 +47,15 @@ object AuthQueryService: IAuthQueryService {
         }
     }
 
+    override suspend fun sendToQueue(authCallbackPayload: AuthCallbackPayload) {
+        val queueName = Constants.AUTH_RESPONSE_QUEUE
+        val channel = connection.createChannel()
 
-    override suspend fun sendToQueue(authRequest: AuthRequest) {
-        TODO("Not yet implemented")
+        channel.queueDeclare(queueName,true,false,false,null)
+        val message = Json.encodeToString<AuthCallbackPayload>(authCallbackPayload)
+        channel.basicPublish("", queueName, null, message.toByteArray())
+
+        logger.info("Message received from internal api $message")
     }
 
     override suspend fun startConsumer(): String? = withContext(Dispatchers.IO){
@@ -58,8 +63,6 @@ object AuthQueryService: IAuthQueryService {
         val channel = connection.createChannel()
 
         channel.queueDeclare(queueName,true,false,false,null)
-        logger.info("Queue declaration done!")
-
         val consumer = object : DefaultConsumer(channel) {
             override fun handleDelivery(
                 consumerTag: String?,
@@ -80,7 +83,15 @@ object AuthQueryService: IAuthQueryService {
                                 requestTimeoutMillis = 3000
                             }
                         }
-                        response.body<AuthResponse>()
+                        if (response.status.isSuccess()){
+                            response.body<AuthResponse>()
+                        }
+                        else{
+                            logger.warn("Auth service returned ${response.status}")
+                            AuthResponse(request.stationId,
+                                request.driverToken,
+                                AccessStatus.unknown)
+                        }
                     }
                     catch (e: Exception){
                         logger.error("Timeout or error connecting internal api",e)
@@ -89,37 +100,5 @@ object AuthQueryService: IAuthQueryService {
             }
         }
         channel.basicConsume(queueName,true,consumer)
-    }
-
-    private suspend fun sendCallback(callbackUrl: String, payload: AuthResponse){
-        try {
-            val response = httpClient.post(callbackUrl) {
-                contentType(ContentType.Application.Json)
-                setBody(payload)
-            }
-            if (response.status.isSuccess()){
-                val insertResult = transaction {
-                    AccessLogs.insert {
-                        it[stationId] = payload.stationId
-                        it[driverToken] = payload.driverToken
-                        it[status] = payload.status.name
-                        it[timestamp] = LocalDateTime.now()
-                    }
-                }
-                if (insertResult!=null){
-                    logger.info("Access Log table updated with latest decision ${insertResult.insertedCount}")
-                }
-                else{
-                    logger.error("Issue while updating latest access log")
-                }
-                logger.info("Response sent to callback url successfully ${response.status}")
-            }
-            else{
-                logger.error("Issue sending response to callback url ${response.status}")
-            }
-        }
-        catch (e: Exception){
-            logger.error("Error sending callback $e")
-        }
     }
 }

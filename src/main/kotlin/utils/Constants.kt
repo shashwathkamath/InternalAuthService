@@ -3,6 +3,7 @@ package org.kamath.utils
 object Constants {
     //QueueName
     const val AUTH_REQUEST_QUEUE= "auth-requests"
+    const val AUTH_RESPONSE_QUEUE = "auth-response"
 
     //Rabbit MQ credentials
     const val RABBITMQ_HOST = "localhost"

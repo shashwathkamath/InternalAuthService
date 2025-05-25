@@ -1,8 +1,8 @@
 package org.kamath.services
 
-import org.example.models.AuthRequest
+import org.example.models.AuthCallbackPayload
 
 interface IAuthQueryService {
-    suspend fun sendToQueue(authRequest: AuthRequest)
+    suspend fun sendToQueue(authCallbackPayload: AuthCallbackPayload)
     suspend fun startConsumer():String?
 }
