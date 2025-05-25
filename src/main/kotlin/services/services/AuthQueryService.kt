@@ -47,7 +47,6 @@ object AuthQueryService: IAuthQueryService {
         }
     }
 
-
     override suspend fun sendToQueue(authCallbackPayload: AuthCallbackPayload) {
         val queueName = Constants.AUTH_RESPONSE_QUEUE
         val channel = connection.createChannel()
