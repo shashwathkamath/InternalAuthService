@@ -21,6 +21,10 @@ import org.example.models.AuthResponse
 import org.kamath.utils.Constants
 import org.kamath.utils.logger
 
+/**
+ * The auth service will start by consuming the request from ChargingSessionService
+ * The auth service will call /verify api to access and verify db
+ */
 object AuthQueryService: IAuthQueryService {
 
     private val factory: ConnectionFactory by lazy {

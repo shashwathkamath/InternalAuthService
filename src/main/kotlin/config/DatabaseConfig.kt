@@ -6,6 +6,9 @@ import org.kamath.utils.Constants
 import org.kamath.utils.logger
 import org.jetbrains.exposed.sql.Database
 
+/**
+ * ACL db for verifying whether the user is allowed to access the station
+ */
 object DatabaseConfig {
     fun init(){
         try{

@@ -19,6 +19,11 @@ import org.kamath.services.IAuthQueryService
 import org.kamath.utils.logger
 import java.time.LocalDateTime
 
+/**
+ * Once we get data from messaging queue, we call the API to access db
+ * That api will be mapped to below controller for match in db
+ * The decision is then persisted to AccessLogs DB
+ */
 object InternalAuthController {
 
     suspend fun handleMessage(call: ApplicationCall){
