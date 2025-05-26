@@ -40,5 +40,8 @@ docker exec -it my-postgres psql -U postgres
     - username: guest
     - password: guest
 ---
+## Notes
+- Sequence diagrams and objectives explained here: https://docs.google.com/document/d/18EU1KPouKqje3AuvDFcoeLM3gR-Txr3bgEx2qQ_Wjtg/edit?tab=t.0
+
 ### Troubleshooting
 - If you face any issues in above mentioned steps, then please contact me at kamathsh91@gmail.com
