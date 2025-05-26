@@ -8,6 +8,12 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 
+/**
+ * We populate the db with seed data and map the driver token with status
+ * we add data to when we create table.
+ * These methods are called when the application is first instantiated.
+ * All table entities are inside db > tables
+ */
 object SeedHelper {
 
     fun seedDummyUsers(){
