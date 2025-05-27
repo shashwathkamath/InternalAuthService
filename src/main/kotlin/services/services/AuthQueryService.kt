@@ -52,14 +52,20 @@ object AuthQueryService: IAuthQueryService {
     }
 
     override suspend fun sendToQueue(authCallbackPayload: AuthCallbackPayload) {
-        val queueName = Constants.AUTH_RESPONSE_QUEUE
-        val channel = connection.createChannel()
+        try {
+            val queueName = Constants.AUTH_RESPONSE_QUEUE
+            val channel = connection.createChannel()
 
-        channel.queueDeclare(queueName,true,false,false,null)
-        val message = Json.encodeToString<AuthCallbackPayload>(authCallbackPayload)
-        channel.basicPublish("", queueName, null, message.toByteArray())
+            channel.queueDeclare(queueName,true,false,false,null)
+            val message = Json.encodeToString<AuthCallbackPayload>(authCallbackPayload)
+            channel.basicPublish("", queueName, null, message.toByteArray())
 
-        logger.info("Message received from internal api $message")
+            logger.info("Message sent to response queue $message")
+        }
+        catch (e: Exception){
+            logger.error("Exception while sending message to response-queue")
+            throw e
+        }
     }
 
     override suspend fun startConsumer(): String? = withContext(Dispatchers.IO){
