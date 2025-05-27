@@ -98,13 +98,18 @@ object AuthQueryService: IAuthQueryService {
                         }
                         else{
                             logger.warn("Auth service returned ${response.status}")
+                            //constraint#2 if timeout happens, then driver token is returned unkown
                             AuthResponse(request.stationId,
-                                request.driverToken,
+                                "Unknown",
                                 AccessStatus.unknown)
                         }
                     }
                     catch (e: Exception){
                         logger.error("Timeout or error connecting internal api",e)
+                        //constraint#2 if timeout happens, then driver token is returned unkown
+                        AuthResponse(request.stationId,
+                            "Unknown",
+                            AccessStatus.unknown)
                     }
                 }
             }
